@@ -13,6 +13,8 @@ use app\models\User;
 class InstallController extends Controller
 {
 
+	public $layout = 'install';
+	
     public function actionIndex()
     {
         if (\Yii::$app->db->getTableSchema('{{%migration}}', true) == null) {
@@ -66,7 +68,7 @@ class InstallController extends Controller
         if ($model->load(Yii::$app->request->post())) {
             if ($user = $model->signup()) {
                 if (Yii::$app->getUser()->login($user)) {
-                    return $this->redirect('/install/done');
+                    return $this->redirect('/install/secret-key');
                 }
             }
         }
@@ -75,6 +77,36 @@ class InstallController extends Controller
             'model' => $model,
         ]);
     }
+	
+	public function actionSecretKey()
+	{
+		if (Yii::$app->params['secretKey'] != 'SECRET_PASS_KEY')
+			return $this->redirect('/install/done');
+		
+		$conf = Yii::getAlias('@app/config/params.php');
+		if (!file_exists($conf))
+			throw new \Exception("Unable to find params.php in $conf");
+		
+		try {
+			$data = file_get_contents($conf);
+			$data = str_replace('SECRET_PASS_KEY', \Yii::$app->security->generateRandomString(32), $data);
+			file_put_contents($conf, $data);
+			
+			return $this->refresh();
+		} catch (\Exception $e) {
+			return $this->render('secret-key', [
+				'err' => $e->getMessage(),
+			]);
+			//return $e->message;
+		}
+		
+		return $this->render('secret-key');
+		
+		//$config = include $conf;
+		
+		//if $config['secretKey'] == 'SECRET_PASS_KEY' secretKey
+		
+	}
 
     public function actionDone()
     {

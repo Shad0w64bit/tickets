@@ -16,5 +16,5 @@ return [
     'debugCommunication' => false,
     'passwordResetExpired' => 60*60*24*1, // 1 Day
     // SecretKey using for encryption and decryption password
-    'secretKey' => 'MySecretKey123',
+    'secretKey' => 'SECRET_PASS_KEY',
 ];
